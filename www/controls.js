@@ -13,6 +13,7 @@ export function setupControls(canvas) {
   });
   window.addEventListener('mousemove', (e) => {
     if (!isDragging) return;
+    if (!canvas.viewer) return;
     let dx = e.clientX - lastX, dy = e.clientY - lastY;
     lastX = e.clientX; lastY = e.clientY;
     // Sensitivity tuned for typical tunnel scale
@@ -27,6 +28,7 @@ export function setupControls(canvas) {
   // Mouse wheel for zoom
   canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
+    if (!canvas.viewer) return;
     let z = Math.max(0.5, Math.min(3, canvas.viewer.state.zoom + (e.deltaY < 0 ? 0.05 : -0.05)));
     canvas.viewer.setZoom(z);
     canvas.viewer.requestRender();
@@ -34,6 +36,7 @@ export function setupControls(canvas) {
 
   // Keyboard: arrow keys to move forward/back
   canvas.addEventListener('keydown', (e) => {
+    if (!canvas.viewer) return;
     if (e.key === "ArrowUp" || e.key === "ArrowDown") {
       let dz = (e.key === "ArrowUp" ? 10 : -10);
       canvas.viewer.move(dz);
