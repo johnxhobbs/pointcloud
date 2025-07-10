@@ -1,0 +1,38 @@
+The header of the entire file states 
+
+`-filter 1000000 -speed 100.0 -hinc 4 -far -highpow -profiler -endless -writing 0 -lineheadersize 40 -linestream all -statusstream -securitymode autoon  -sync enc`
+
+File Organization
+
+Total chunk size: 71,720 bytes
+Header size: 40 bytes
+Data payload: 71,680 bytes (71,720 - 40)
+Readings per rotation: 5,120
+Bytes per reading: 14 bytes
+Verification: 5,120 × 14 = 71,680 bytes ✓
+
+Chunk Header Structure (40 bytes)
+The header AA55341200000000000000000000000000000000B32942000C01402D likely contains:
+
+Sync pattern: AA55 (common in industrial protocols)
+Chunk ID/sequence: 3412
+Reserved/padding: Multiple zero bytes
+Timestamp or status: B32942000C01402D (possibly IEEE 754 float + metadata)
+
+Reading Structure (14 bytes each)
+For a 2D scanner with polar coordinates, each 14-byte reading likely contains:
+
+Angle data (2-4 bytes): Angular position or encoder value
+Distance (4 bytes): Range measurement, probably IEEE 754 float
+Reflectivity/Intensity (2-4 bytes): Signal strength
+Quality flags (1-2 bytes): Validity, saturation, multiple returns
+Possible padding or additional metadata
+
+Example Interpretation
+Looking at your data pattern 33BB5EA542C50000850ECC423D3B00A4A10000:
+
+33BB5EA5 could be a 32-bit float distance value
+42C50000 might be reflectivity (float format)
+850E could be angle encoder value
+CC42 might be quality/status flags
+And so on...
