@@ -1,3 +1,5 @@
+options(shiny.maxRequestSize = 100*1024^2)  # 100 MB
+
 # R Shiny app: WebGL tunnel point cloud viewer for cylindrical TIFF depth maps
 # All heavy lifting is done in browser via low-level WebGL2 for maximum speed.
 
