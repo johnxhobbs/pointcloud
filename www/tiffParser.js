@@ -16,14 +16,14 @@ export async function parseTiff(file) {
         let depthImage = ifds[0];
         let reflectImage = ifds.length > 1 ? ifds[1] : ifds[0];
         let width = depthImage.width, height = depthImage.height;
-        // UTIF returns Uint16Array for 16-bit.
-        let depth = UTIF.toRGBA8(depthImage); // Returns Uint8ClampedArray, but we want 16-bit.
-        // Instead, decode raw data:
+        // Defensive copy: slice into new typed arrays so not referencing UTIF's buffer
         let rawDepth = new Uint16Array(depthImage.data.buffer, depthImage.data.byteOffset, width * height);
         let rawReflect = new Uint16Array(reflectImage.data.buffer, reflectImage.data.byteOffset, width * height);
+        let depth = new Uint16Array(rawDepth);    // Copy
+        let reflect = new Uint16Array(rawReflect); // Copy
         resolve({
-          depth: rawDepth,
-          reflect: rawReflect,
+          depth: depth,
+          reflect: reflect,
           width, height
         });
       } catch (err) {
