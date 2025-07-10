@@ -51,12 +51,20 @@ Modern browsers (especially Chrome) block ES modules and some scripts when openi
 
 ## 3. Test Data Generation
 
-* To create a synthetic test image, run:
+There are two R scripts for generating synthetic test images:
+
+* **Standard sample (96x64 voxels):**
   ```r
   source("R/generate_test_tiff.R")
   ```
-* This will create a file at `img/sample_cyl.tif` with two 16-bit layers (radius and reflectivity).
-* If the `{tiff}` package is not installed, the script will emit a message instead.
+  - Creates: `img/sample_cyl.tif` (96x64, 2-layer, 16-bit)
+* **Small sample (36x20 voxels):**
+  ```r
+  source("R/generate_small_tiff.R")
+  ```
+  - Creates: `img/sample_cyl_36x20.tif` (36x20, 2-layer, 16-bit)
+
+Both scripts generate two-layer, 16-bit TIFFs (radius and reflectivity). If the `{tiff}` package is not installed, the script will emit a message instead.
 
 ## 4. Notes
 
