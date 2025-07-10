@@ -35,6 +35,7 @@ ready(() => {
       // Create or update viewer
       if (!viewer) {
         viewer = new Viewer(canvas, width, height);
+        canvas.viewer = viewer; // Expose the Viewer instance for controls.js
       }
       viewer.setData(depth, reflect, width, height);
       viewer.render(); // Initial draw
