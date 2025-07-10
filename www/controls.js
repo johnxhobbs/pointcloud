@@ -5,12 +5,6 @@
 let isDragging = false, lastX = 0, lastY = 0;
 
 export function setupControls(canvas) {
-  let viewer = null;
-  // Find Viewer instance injected by main.js
-  setTimeout(() => {
-    viewer = window.viewer || null;
-  }, 1000);
-
   // Mouse drag to orbit
   canvas.addEventListener('mousedown', (e) => {
     isDragging = true;
