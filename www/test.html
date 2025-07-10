@@ -3,6 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <title>Viewer Test Harness</title>
+  <!-- 
+    NOTE: This test page must be served via HTTP (not file://) to work in modern browsers like Chrome,
+    because ES modules and some scripts are blocked for security reasons when loaded from file://.
+    Use RStudio Viewer, or run a local web server such as:
+      python -m http.server 8000
+    ...then open http://localhost:8000/www/test.html in your browser.
+  -->
+  <!-- External libraries: loaded from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/utif@3.0.0/UTIF.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/gl-matrix-min.js"></script>
   <style>
     #glviewer-container {
       width: 640px;
@@ -23,9 +33,6 @@
   <input type="file" id="fileInput" accept=".tif,.tiff,image/tiff">
   <div id="glviewer-container"></div>
 
-  <!-- External dependencies, adjust paths as needed -->
-  <script src="UTIF.js"></script>
-  <script src="gl-matrix-min.js"></script>
   <script type="module">
     import { initViewer } from './main.js';
 

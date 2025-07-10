@@ -4,13 +4,36 @@
 
 You can test the WebGL viewer without running Shiny by using `www/test.html`.
 
-### Open in RStudio Viewer
+### ⚠️ Important: Use an HTTP Server (not file://)
 
-* In RStudio, run:
+Modern browsers (especially Chrome) block ES modules and some scripts when opening HTML files directly from disk (file://).
+**Always serve `test.html` via HTTP to ensure all features and external libraries load properly.**
+
+#### Quick Start (Local Web Server Options)
+
+- **Python (any OS):**
+  ```sh
+  python -m http.server 8000
+  ```
+  Then open [http://localhost:8000/www/test.html](http://localhost:8000/www/test.html) in your browser.
+
+- **R (servr):**
+  ```r
+  servr::httw('www')
+  ```
+  Then browse to the provided URL.
+
+- **R (httpuv):**
+  ```r
+  httpuv::startServer("0.0.0.0", 8000, list())
+  ```
+
+- **RStudio Viewer:**  
+  You can also use:
   ```r
   rstudioapi::viewer("www/test.html")
   ```
-  or, if you do not use RStudio or want to open in a browser:
+  or, to open in an external browser:
   ```r
   browseURL("www/test.html")
   ```
