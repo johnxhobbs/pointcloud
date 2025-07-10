@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Viewer Test Harness</title>
+  <style>
+    #glviewer-container {
+      width: 640px;
+      height: 480px;
+      border: 1px solid #ccc;
+      margin-top: 1em;
+      position: relative;
+    }
+    .viewer-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h2>Manual Viewer Test</h2>
+  <input type="file" id="fileInput" accept=".tif,.tiff,image/tiff">
+  <div id="glviewer-container"></div>
+
+  <!-- External dependencies, adjust paths as needed -->
+  <script src="UTIF.js"></script>
+  <script src="gl-matrix-min.js"></script>
+  <script type="module">
+    import { initViewer } from './main.js';
+
+    const container = document.getElementById('glviewer-container');
+    const viewer = initViewer(container);
+
+    // Example: wire up file input to viewer (user to adjust as per actual API)
+    document.getElementById('fileInput').addEventListener('change', function (evt) {
+      const file = evt.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        // Assume viewer exposes a loadTIFF(buffer) method
+        if (container.canvas && container.canvas.viewer && container.canvas.viewer.loadTIFF) {
+          container.canvas.viewer.loadTIFF(e.target.result);
+        } else {
+          // fallback or error
+          alert('Viewer not ready or loadTIFF not implemented!');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  </script>
+</body>
+</html>

@@ -1,46 +1,55 @@
-// main.js (entry point for tunnel viewer)
-// Handles Shiny bindings, file input, creates canvas, wires up modules.
+// main.js
 
-import { parseTiff } from './tiffParser.js';
-import { Viewer } from './viewer.js';
-import { setupControls } from './controls.js';
-
-// Helper: Wait for DOM
-function ready(fn) {
-  if (document.readyState !== 'loading') fn();
-  else document.addEventListener('DOMContentLoaded', fn);
+// Exported function to initialize the viewer inside a container.
+// The viewer instance is attached to container.canvas.viewer.
+export function initViewer(container) {
+    if (!container) return;
+    // Avoid double-init
+    if (container.canvas && container.canvas.viewer) return container.canvas.viewer;
+    // Create the WebGL canvas if not present
+    let canvas = container.querySelector('canvas.viewer-canvas');
+    if (!canvas) {
+        canvas = document.createElement('canvas');
+        canvas.className = 'viewer-canvas';
+        container.appendChild(canvas);
+    }
+    // ... viewer initialization code here ...
+    // For example:
+    // import { Viewer } from './viewer.js'; (if needed)
+    // const viewer = new Viewer(canvas, ...);
+    // Attach the instance for external access
+    canvas.viewer = { 
+        // expose whatever API or instance is needed
+        // e.g. viewer, or direct methods
+    };
+    container.canvas = canvas;
+    return canvas.viewer;
 }
 
-let viewer = null;
-
-ready(() => {
-  // Insert canvas into DOM
-  const container = document.getElementById("glviewer-container");
-  let canvas = document.createElement("canvas");
-  canvas.id = "glcanvas";
-  canvas.tabIndex = 0; // For key events
-  container.appendChild(canvas);
-
-  // Set up viewer controls UI (sliders etc)
-  setupControls(canvas);
-
-  // Hook up file input (Shiny input binding = fileInput_tiffFile)
-  // Wait for file to be selected
-  document.body.addEventListener('change', async (e) => {
-    if (e.target && e.target.type === "file") {
-      let file = e.target.files[0];
-      if (!file) return;
-      // Parse TIFF in browser, extract two 16-bit layers (depth, reflectivity)
-      const {depth, reflect, width, height} = await parseTiff(file);
-      // Create or update viewer
-      if (!viewer) {
-        viewer = new Viewer(canvas, width, height);
-        canvas.viewer = viewer; // Expose the Viewer instance for controls.js
-      }
-      viewer.setData(depth, reflect, width, height);
-      viewer.render(); // Initial draw
+// Wait for #glviewer-container to exist in DOM, then initialize.
+function waitForContainerAndInit() {
+    function tryInit() {
+        const container = document.getElementById('glviewer-container');
+        if (container) {
+            initViewer(container);
+            return true;
+        }
+        return false;
     }
-  });
+    if (!tryInit()) {
+        // Fallback: poll every 100ms until found
+        const interval = setInterval(() => {
+            if (tryInit()) clearInterval(interval);
+        }, 100);
+    }
+}
+
+// Instead of ready(), use this logic:
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", waitForContainerAndInit);
+} else {
+    waitForContainerAndInit();
+}
 
   // Listen to Shiny messages for zPos and zoom (from R server)
   if (window.Shiny) {
