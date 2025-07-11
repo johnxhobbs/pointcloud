@@ -214,7 +214,7 @@
         let writeIdx = currentWriteIndex * 4; // 4 floats per point
         
         for (let row = 0; row < height; row++) {
-          const x = row; // row is offset along x-axis
+          const x = 0.01 * row; // row is offset along x-axis in cm
           
           for (let col = 0; col < width; col++) {
             const pixelIdx = row * width + col;
@@ -226,8 +226,8 @@
             const azimuth = (col / width) * 2 * Math.PI;
             
             // Convert cylindrical to cartesian
-            const y = radius * Math.cos(azimuth);
-            const z = radius * Math.sin(azimuth);
+            const y = 0.001 * radius * Math.cos(azimuth);
+            const z = 0.001 * radius * Math.sin(azimuth);
             
             // Store in buffer as x, y, z, 1
             posData[writeIdx] = x;
