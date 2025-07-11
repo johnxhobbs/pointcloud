@@ -57,7 +57,7 @@
   setupControls(canvas);
 
   log('Uploading synthetic data to GPU …');
-  viewer.setData(depth, reflect, WIDTH, HEIGHT);
+  await viewer.setData(depth, reflect, WIDTH, HEIGHT);
   viewer.render();
   log('Initial render complete. Interact with mouse + wheel or arrow keys.');
 </script>

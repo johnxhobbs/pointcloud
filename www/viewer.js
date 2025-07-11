@@ -28,9 +28,13 @@ export class Viewer {
     this.numPoints = 0;
     // Shaders
     this.program = null;
-    // Setup
-    this.initGL();
-    this.initEvents();
+    // Async setup
+    this.initialised = false;
+    this.ready = this.initGL().then(() => {
+      this.initEvents();
+      this.initialised = false; // Will be set true by setData when data is uploaded
+      return true;
+    });
   }
 
   async initGL() {
@@ -71,6 +75,7 @@ export class Viewer {
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     // Only render on demand (see render)
     this.needsRender = true;
+    return true;
   }
 
   compileShader(type, src) {
@@ -85,7 +90,8 @@ export class Viewer {
   }
 
   // Upload TIFF layers to GPU textures, build VBO of (row,col) pairs
-  setData(depth, reflect, width, height) {
+  async setData(depth, reflect, width, height) {
+    await this.ready;
     const gl = this.gl;
     this.width = width;
     this.height = height;
@@ -120,6 +126,7 @@ export class Viewer {
     gl.bufferData(gl.ARRAY_BUFFER, pointIdx, gl.STATIC_DRAW);
     this.numPoints = numPoints;
     this.needsRender = true;
+    this.initialised = true;
   }
 
   // Camera controls
@@ -136,6 +143,16 @@ export class Viewer {
   requestRender() { this.needsRender = true; }
 
   // Called on each frame (but only when needed)
+  render() {
+    if (!this.initialised) return;
+    if (!this.needsRender) return;
+    this.needsRender = false;
+    const gl = this.gl;
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    gl.useProgram(this.program);
+    ...
   render() {
     if (!this.needsRender) return;
     this.needsRender = false;

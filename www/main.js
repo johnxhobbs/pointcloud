@@ -51,7 +51,7 @@ async function handleFileInput(evt) {
       // Expose for controls.js or debugging
       canvas.viewer = viewer;
     }
-    viewer.setData(depth, reflect, width, height);
+    await viewer.setData(depth, reflect, width, height);
     viewer.render();
   } catch (err) {
     console.error('Failed to load TIFF:', err);
