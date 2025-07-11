@@ -25,6 +25,7 @@
           <div class="upload-area" id="uploadArea">
           <p>Drag & Drop TIFF files here or click to browse</p>
           <button class="upload-button" onclick="document.getElementById('fileInput').click()">Choose TIFF Files</button>
+          <button id="refreshButton" onclick="refreshTexture()">Refresh View</button>
           <input type="file" id="fileInput" accept=".tiff,.tif" multiple>
           </div>
           
@@ -145,6 +146,7 @@
         
         showStatus(`Successfully processed ${files.length} file(s)`, 'success');
         updateBufferInfo();
+        refreshTexture();
         
         // Clear file input
         fileInput.value = '';
@@ -322,6 +324,12 @@
       gl.TEXTURE_2D, 0, gl.RGBA32F, TEX_W, TEX_H, 0,
       gl.RGBA, gl.FLOAT, posData
     );
+
+    // Refresh the posTex texture from posData
+    function refreshTexture() {
+      gl.bindTexture(gl.TEXTURE_2D, posTex);
+      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, TEX_W, TEX_H, gl.RGBA, gl.FLOAT, posData);
+    }
 
     // --- Dummy VBO: no per-vertex attribs needed, just gl_VertexID ---
     const vbo = gl.createBuffer();
