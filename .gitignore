@@ -2,3 +2,6 @@
 data-raw
 
 .R*
+.Rproj.user
+
+img/sample*

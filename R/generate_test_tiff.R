@@ -20,9 +20,8 @@ save_sample_tiff <- function(filename = "img/sample_cyl.tif") {
   reflect <- outer(seq(0, 1, length.out = nr), rep(1, nc))
   reflect16 <- as.integer(65535 * reflect)
   # Combine layers
-  arr <- array(NA_integer_, dim = c(nr, nc, 2))
-  arr[, , 1] <- radius16
-  arr[, , 2] <- reflect16
+  arr <- array(sample(as.numeric(1:65534), nr*nc*2, replace = TRUE), dim = c(nr, nc, 2))
+  arr <- array(runif(nr*nc*2), dim = c(nr, nc, 2))
   dir.create(dirname(filename), showWarnings = FALSE, recursive = TRUE)
   tiff::writeTIFF(arr, filename, bits.per.sample = 16L)
   message(sprintf("Wrote test TIFF: %s", filename))

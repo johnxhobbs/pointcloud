@@ -1,7 +1,8 @@
-// tunnel.vs.glsl
 #version 300 es
+// tunnel.vs.glsl
 // Vertex shader: transcodes cylindrical TIFF (row, col, radius) to 3D point cloud in tunnel
 precision highp float;
+//precision highp int;
 precision highp usampler2D;
 
 in uvec2 a_pointIdx; // (row, col)
