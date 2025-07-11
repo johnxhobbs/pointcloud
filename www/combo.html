@@ -70,6 +70,22 @@
       
       const posData = new Float32Array(TEX_W * TEX_H * 4);
       posData.fill(0); // Initialize all values to zero
+
+      // --- Logging helper: log sample of xyz points from posData ---
+      function logSampleData(label) {
+        // Grab the first 100 xyz triplets from posData (ignoring the w component)
+        const sample = [];
+        const max = Math.min(100, Math.floor(posData.length / 4));
+        for (let i = 0; i < max; i++) {
+          const base = i * 4;
+          sample.push([
+            posData[base    ].toFixed(2),
+            posData[base + 1].toFixed(2),
+            posData[base + 2].toFixed(2)
+          ]);
+        }
+        console.log(`[${label}] sample xyz (first ${sample.length} points):`, sample);
+      }
       
       let currentWriteIndex = 0; // Track where to write next
       let totalPointsAdded = 0;
@@ -146,6 +162,7 @@
         
         showStatus(`Successfully processed ${files.length} file(s)`, 'success');
         updateBufferInfo();
+        console.log('[handleFiles] All files processed, now refreshing texture');
         refreshTexture();
         
         // Clear file input
@@ -192,6 +209,7 @@
       }
       
       function convertCylindricalToCartesian(data, width, height) {
+        console.log(`[convert] starting conversion – writeIdx start = ${currentWriteIndex * 4}`);
         // High-performance tight loop for coordinate conversion
         let writeIdx = currentWriteIndex * 4; // 4 floats per point
         
@@ -227,6 +245,8 @@
           }
         }
         
+        logSampleData('After convertCylindricalToCartesian');
+
         // Update current write index for next file
         currentWriteIndex = writeIdx / 4;
         if (currentWriteIndex >= POINT_COUNT) {
@@ -327,8 +347,17 @@
 
     // Refresh the posTex texture from posData
     function refreshTexture() {
+      console.log('[refreshTexture] called – uploading posData to GPU');
+      // Ensure correct texture bound & alignment
+      gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, posTex);
-      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, TEX_W, TEX_H, gl.RGBA, gl.FLOAT, posData);
+      gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+      gl.texSubImage2D(
+        gl.TEXTURE_2D, 0, 0, 0, TEX_W, TEX_H,
+        gl.RGBA, gl.FLOAT, posData
+      );
+      // Optional: log a small data sample every refresh
+      logSampleData('After refreshTexture');
     }
 
     // --- Dummy VBO: no per-vertex attribs needed, just gl_VertexID ---
