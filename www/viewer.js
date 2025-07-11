@@ -1,18 +1,30 @@
 // viewer.js
-// Handles all low-level WebGL2 logic: context, shaders, VBOs, textures, draw call for tunnel point cloud.
-// SPEED: All math is on GPU, single draw call, minimal CPU overhead.
 
-import { mat4 } from "https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/esm/index.js";
+export class TunnelViewer {
+    constructor(canvas, opts = {}) {
+        this.canvas = canvas;
+        this.gl = canvas.getContext('webgl2');
+        if (!this.gl) throw new Error('WebGL2 not supported');
+        this.opts = opts;
+        this.state = { };
+        this.numPoints = 0;
+        this.needsRender = false;
+        this.program = null;
+        this.buffers = {};
+        this.textures = {};
+        this.pointCloudLoaded = false;
+        this.pointSize = 6.0; // Default point size
+        this.frame = 0; // Frame counter
+        this._setupGL();
+        this._setupEvents();
+        this.animate = this.animate.bind(this);
+        this.animate();
+    }
 
-// Shader loader utility
-async function loadShaderSrc(url) {
-  return fetch(url).then(r => r.text());
-}
-
-export class Viewer {
-  constructor(canvas, width, height) {
-    // SPEED: Use WebGL2 for R16UI textures, 16-bit integer upload, modern features.
-    this.gl = canvas.getContext('webgl2', {antialias: false});
+    setPointSize(size) {
+        this.pointSize = size;
+        this.needsRender = true;
+    });
     if (!this.gl) throw "WebGL2 not supported";
     this.canvas = canvas;
     this.width = width; this.height = height;
@@ -127,6 +139,7 @@ export class Viewer {
     this.numPoints = numPoints;
     this.needsRender = true;
     this.initialised = true;
+    console.debug("[viewer] Point cloud uploaded", this.numPoints, "points.");
   }
 
   // Camera controls
@@ -144,59 +157,31 @@ export class Viewer {
 
   // Called on each frame (but only when needed)
   render() {
-    if (!this.initialised) return;
-    if (!this.needsRender) return;
-    this.needsRender = false;
-    const gl = this.gl;
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        if (!this.pointCloudLoaded || !this.program) return false;
+        if (!this.needsRender) return false;
 
-    gl.useProgram(this.program);
+        this.frame = (this.frame || 0) + 1;
 
-    // Uniforms
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.depthTex);
-    gl.uniform1i(this.u_depthTex, 0);
+        const gl = this.gl;
+        // ...other code...
 
-    gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, this.reflectTex);
-    gl.uniform1i(this.u_reflectTex, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.useProgram(this.program);
 
-    gl.uniform2f(this.u_shape, this.width, this.height);
+        // Set point size uniform
+        const u_pointSize = gl.getUniformLocation(this.program, "u_pointSize");
+        if (u_pointSize) gl.uniform1f(u_pointSize, this.pointSize);
 
-    // Camera: cylindrical tunnel, orbit/zoom/translate
-    let aspect = gl.canvas.width / gl.canvas.height;
-    let proj = mat4.create();
-    // SPEED: Use perspective, but increase near/far for long tunnel
-    mat4.perspective(proj, 0.7, aspect, 5, 30000);
-    gl.uniformMatrix4fv(this.u_proj, false, proj);
+        // ...setup uniforms, attribs...
 
-    let view = mat4.create();
-    // SPEED: Orbit camera around tunnel axis (Y axis).
-    // z = forward/back (cm), theta = azimuth, phi = elevation
-    let cam = this.state;
-    let cz = cam.z / 100.0; // Convert cm to m
-    mat4.identity(view);
-    mat4.translate(view, view, [0, 0, -cz]);
-    mat4.rotateY(view, view, cam.theta);
-    mat4.rotateX(view, view, cam.phi);
-    mat4.scale(view, view, [cam.zoom, cam.zoom, cam.zoom]);
-    gl.uniformMatrix4fv(this.u_view, false, view);
+        gl.drawArrays(gl.POINTS, 0, this.numPoints);
 
-    // Camera params for per-vertex math
-    gl.uniform4f(this.u_camera, cam.theta, cam.phi, cz, cam.zoom);
+        console.debug(`[viewer] frame ${this.frame} drawn`, this.numPoints, 'points. cam', this.state);
 
-    // Point size
-    gl.uniform1f(this.u_pointSize, 6.0);
-
-    // Bind VBO: two ints per vertex (row, col)
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.pointVBO);
-    gl.enableVertexAttribArray(this.a_pointIdx);
-    gl.vertexAttribIPointer(this.a_pointIdx, 2, gl.UNSIGNED_INT, 0, 0);
-
-    // SPEED: Single draw call, all math in VS
-    gl.drawArrays(gl.POINTS, 0, this.numPoints);
-  }
+        // ...other code...
+        this.needsRender = false;
+        return true;
+    }
 
   // For controls.js: request frame only after interaction
   initEvents() {

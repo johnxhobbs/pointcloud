@@ -1,4 +1,41 @@
 <!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Tunnel Viewer Self Test</title>
+  <script type="module" src="viewer.js"></script>
+  <style>
+    html, body { margin: 0; padding: 0; background: #111; color: #eee; }
+    canvas { width: 100vw; height: 100vh; display: block; }
+  </style>
+</head>
+<body>
+<canvas id="viewer"></canvas>
+<script type="module">
+import { TunnelViewer } from './viewer.js';
+
+// Set WIDTH 72 and HEIGHT 40 unchanged
+const WIDTH = 72;
+const HEIGHT = 40;
+
+// Generate depth constant maybe 1000 mm.
+function makeConstantArray(val, w, h) {
+  const arr = [];
+  for (let row = 0; row < h; ++row) {
+    arr.push(new Array(w).fill(val));
+  }
+  return arr;
+}
+const depth = makeConstantArray(1000, WIDTH, HEIGHT); // 1000 mm
+const reflect = makeConstantArray(65535, WIDTH, HEIGHT); // 65535 for all points
+
+const canvas = document.getElementById('viewer');
+const viewer = new TunnelViewer(canvas);
+
+viewer.uploadPointCloud(depth, reflect);
+console.log("[selftest] point cloud uploaded.");
+
+viewer.setPointSize(20);
 <html lang="en">
 <head>
   <meta charset="utf-8" />
