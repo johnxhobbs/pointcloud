@@ -1,3 +1,5 @@
+if(FALSE){
+
 library(data.table)
 
 bin = readBin('AMTGRP5000--20140805012250m-finalchunk.zfs', 'raw', n=1e6)
@@ -108,3 +110,4 @@ abline(v=c(-8400,5400), col='red'); diff(c(-8400,5400))
 
 
 
+}
