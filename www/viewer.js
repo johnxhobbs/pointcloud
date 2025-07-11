@@ -152,15 +152,6 @@ export class Viewer {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.useProgram(this.program);
-    ...
-  render() {
-    if (!this.needsRender) return;
-    this.needsRender = false;
-    const gl = this.gl;
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    gl.useProgram(this.program);
 
     // Uniforms
     gl.activeTexture(gl.TEXTURE0);
