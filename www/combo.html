@@ -65,7 +65,8 @@
       
       const POINT_COUNT = TEX_W * TEX_H; // 9M -- this must be square number
       
-      const POINT_SIZE = 1.0; // px
+      const POINT_SIZE_NEAR = 3.0; // px when the point is very close
+      const POINT_SIZE_FAR  = 1.0; // px when the point is far away
       
       const posData = new Float32Array(TEX_W * TEX_H * 4);
       posData.fill(0); // Initialize all values to zero
@@ -267,7 +268,10 @@
       uniform mat4 u_mvp;
       uniform int u_texWidth;
       uniform int u_texHeight;
-      out vec3 v_color;
+      uniform vec3 u_camPos;
+      uniform float u_sizeNear;
+      uniform float u_sizeFar;
+      out float v_gray;
       void main() {
         // Compute texel coords from gl_VertexID
         int idx = gl_VertexID;
@@ -276,20 +280,23 @@
         vec2 uv = (vec2(float(tx), float(ty)) + 0.5) / vec2(float(u_texWidth), float(u_texHeight));
         vec4 pos = texture(u_posTex, uv);
 
+        // Camera-relative point size
+        float dist = distance(pos.xyz, u_camPos);
+        float nearD = 0.5;
+        float farD = 10.0;
+        float t = clamp((dist - nearD) / (farD - nearD), 0.0, 1.0);
+        gl_PointSize = mix(u_sizeNear, u_sizeFar, t);
+
         gl_Position = u_mvp * vec4(pos.xyz, 1.0);
-        gl_PointSize = ${POINT_SIZE.toFixed(1)};
-        v_color = pos.xyz * 0.5 + 0.5; // For fun: encode position as color
+        v_gray = pos.w;
       }
     `;
     const fsSource = `#version 300 es
       precision highp float;
-      in vec3 v_color;
+      in float v_gray;
       out vec4 fragColor;
       void main() {
-        // Circular point appearance
-        vec2 pc = gl_PointCoord - vec2(0.5);
-        if (dot(pc, pc) > 0.25) discard;
-        fragColor = vec4(1.0); // White, or try vec4(v_color,1.0) for position-based coloring
+        fragColor = vec4(vec3(v_gray), 1.0);
       }
     `;
 
@@ -334,6 +341,10 @@
     const loc_u_mvp = gl.getUniformLocation(prog, "u_mvp");
     const loc_u_texWidth = gl.getUniformLocation(prog, "u_texWidth");
     const loc_u_texHeight = gl.getUniformLocation(prog, "u_texHeight");
+    // New uniforms for point size and camera position
+    const loc_u_camPos   = gl.getUniformLocation(prog, 'u_camPos');
+    const loc_u_sizeNear = gl.getUniformLocation(prog, 'u_sizeNear');
+    const loc_u_sizeFar  = gl.getUniformLocation(prog, 'u_sizeFar');
 
     // --- Camera state (same as selftest2.html) ---
     let camera = {
@@ -406,6 +417,10 @@
       gl.uniformMatrix4fv(loc_u_mvp, false, matMVP);
       gl.uniform1i(loc_u_texWidth, TEX_W);
       gl.uniform1i(loc_u_texHeight, TEX_H);
+      // New point size and camera position uniforms
+      gl.uniform3f(loc_u_camPos, eye[0], eye[1], eye[2]);
+      gl.uniform1f(loc_u_sizeNear, POINT_SIZE_NEAR);
+      gl.uniform1f(loc_u_sizeFar,  POINT_SIZE_FAR);
 
       // Bind texture
       gl.activeTexture(gl.TEXTURE0);
